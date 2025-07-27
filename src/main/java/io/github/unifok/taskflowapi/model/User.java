@@ -1,4 +1,4 @@
-package io.github.unifok.taskflowapi.entity;
+package io.github.unifok.taskflowapi.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
