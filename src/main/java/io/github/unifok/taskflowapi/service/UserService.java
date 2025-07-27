@@ -5,6 +5,8 @@ import io.github.unifok.taskflowapi.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class UserService {
     @Autowired
@@ -13,5 +15,8 @@ public class UserService {
     public User registerUser(User user) {
         userRepository.save(user);
         return user;
+    }
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
     }
 }
