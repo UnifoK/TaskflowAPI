@@ -11,22 +11,25 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
     private final UserService userService;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtAuthFilter jwtAuthFilter; // <-- Inject your filter
 
-    // Add this constructor
+
     @Autowired
-    public SecurityConfig(UserService userService) {
+    public SecurityConfig(UserService userService, PasswordEncoder passwordEncoder,JwtAuthFilter jwtAuthFilter) {
         this.userService = userService;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtAuthFilter = jwtAuthFilter;
     }
-    // This bean defines the security rules for HTTP requests.
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -36,24 +39,21 @@ public class SecurityConfig {
                         .requestMatchers("/api/users/register", "/api/users/login").permitAll()
                         .anyRequest().authenticated()
                 )
-                // Add this line to make the session management stateless
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authenticationProvider(authenticationProvider())
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);// <-- This is the crucial link
 
         return http.build();
     }
-    // This bean is responsible for hashing passwords.
 
-    // This bean tells Spring Security how to get user details and encode passwords.
-    // This is the corrected version
     @Bean
-    public AuthenticationProvider authenticationProvider(PasswordEncoder passwordEncoder) { // <-- Ask for the bean here
+    public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(userService);
-        authProvider.setPasswordEncoder(passwordEncoder); // <-- Use the parameter Spring gives you
+        authProvider.setPasswordEncoder(passwordEncoder);
         return authProvider;
     }
 
-    // This bean is the main manager for the authentication process.
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
