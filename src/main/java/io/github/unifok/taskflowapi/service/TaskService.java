@@ -1,5 +1,6 @@
 package io.github.unifok.taskflowapi.service;
 
+import io.github.unifok.taskflowapi.exception.ResourceNotFoundException;
 import io.github.unifok.taskflowapi.model.Task;
 import io.github.unifok.taskflowapi.model.User;
 import io.github.unifok.taskflowapi.repository.TaskRepository;
@@ -21,7 +22,7 @@ public class TaskService {
     public Task createTaskForUser(Task task, Long userId) {
         String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
 
         if (!currentUsername.equals(user.getUsername())) {
             throw new SecurityException("You do not have permission to create a task for this user.");
@@ -34,7 +35,7 @@ public class TaskService {
     public List<Task> getTasksByUserId(Long userId) {
         String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
 
         if (!currentUsername.equals(user.getUsername())) {
             throw new SecurityException("You do not have permission to view these tasks.");
@@ -62,7 +63,7 @@ public class TaskService {
     public String deleteTask(Long taskId) {
         String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
         Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new RuntimeException("Task not found with id: " + taskId));
+                .orElseThrow(() -> new ResourceNotFoundException("Task not found with id: " + taskId));
 
         if (!task.getUser().getUsername().equals(currentUsername)) {
             throw new SecurityException("User does not have permission to delete this task.");
